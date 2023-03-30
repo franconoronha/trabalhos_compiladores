@@ -1,0 +1,107 @@
+PARSER_BEGIN(Lugosi)
+import java.io.*;
+public class Lugosi {
+
+  public static void main(String args[]) throws ParseException,IOException {
+    Lugosi analisador = new Lugosi(new FileInputStream(args[0]));
+    analisador.Lugosi();
+  }
+
+}
+
+PARSER_END(Lugosi)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <ACHAVES: "{">
+| <FCHAVES: "}">
+| <PTVRG: ";">
+| <VAR: "var">
+| <ATRIB: ":=">
+| <APAR: "(">
+| <FPAR: ")">
+| <RETURN: "return">
+| <DO: "do">
+| <IF: "if">
+| <WHILE: "while">
+| <PRINT: "print">
+| <VIRGULA: ",">
+| <FUNCTION: "function">
+| <INT: "int">
+| <BOOL: "bool">
+| <MAIS: "+">
+| <SUB: "-">
+| <MULT: "*">
+| <DIV: "/">
+| <AND: "&&">
+| <OR: "||">
+| <MENOR: "<">
+| <MAIOR: ">">
+| <IGUAL: "==">
+| <FLOAT: "float">
+| <VOID: "void">
+| <TRUE: "true">
+| <FALSE: "false">
+}
+
+
+TOKEN :
+{
+  <NUM : (["0"-"9"])+ (["."](["0"-"9"])+)? (["e"](["+","-"])?(["0"-"9"])+)?>
+ |< ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])*((["_"])*(["a"-"z","A"-"Z","0"-"9"])+)*>
+}
+
+void Lugosi () : {Token t;} 
+{
+
+(
+  <MAIN> { System.out.println("Palavra reservada: main");}
+| <ACHAVES> { System.out.println("Abre chaves: {");}
+| <FCHAVES> { System.out.println("Fecha chaves: }");}
+| <PTVRG> { System.out.println("Ponto e vírgula: ;");}
+| <VAR> { System.out.println("Palavra reservada: var");}
+| <ATRIB> { System.out.println("Atribuição: :=");}
+| <APAR> { System.out.println("Abre parênteses: (");}
+| <FPAR> { System.out.println("Fecha parênteses: )");}
+| <RETURN> { System.out.println("Palavra reservada: return");}
+| <DO> { System.out.println("Palavra reservada: do");}
+| <IF> { System.out.println("Palavra reservada: if");}
+| <WHILE> { System.out.println("Palavra reservada: while");}
+| <PRINT> { System.out.println("Palavra reservada: print");}
+| <VIRGULA> { System.out.println("Vírgula: ,");}
+| <FUNCTION> { System.out.println("Palavra reservada: function");}
+| <INT> { System.out.println("Palavra reservada: int");}
+| <BOOL> { System.out.println("Palavra reservada: bool");}
+| <MAIS> { System.out.println("Operador: +");}
+| <SUB> { System.out.println("Operador: -");}
+| <MULT> { System.out.println("Operador: *");}
+| <DIV> { System.out.println("Operador: /");}
+| <AND> { System.out.println("Operador: &&");}
+| <OR> { System.out.println("Operador: ||");}
+| <MENOR> { System.out.println("Operador: <");}
+| <MAIOR> { System.out.println("Operador: >");}
+| <IGUAL> { System.out.println("Operador: ==");}
+| <FLOAT> { System.out.println("Palavra reservada: float");}
+| <VOID> { System.out.println("Palavra reservada: void");}
+| <TRUE> { System.out.println("Palavra reservada: true");}
+| <FALSE> { System.out.println("Palavra reservada: false");}
+| t=<NUM> { System.out.println("Número: "+ t.image);}
+| t=<ID> { System.out.println("Identificador: "+ t.image);}
+)*
+<EOF> 
+
+}
+
+
+
+
+

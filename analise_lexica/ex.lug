@@ -1,0 +1,5 @@
+main{
+    var int teste_a;
+    teste_a := 29.93434e-12;
+    print (teste_a);
+}

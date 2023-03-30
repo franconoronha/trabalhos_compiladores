@@ -1,0 +1,133 @@
+PARSER_BEGIN(Lugosi)
+import java.io.*;
+public class Lugosi {
+
+  public static void main(String args[]) throws ParseException,IOException {
+    Lugosi analisador = new Lugosi(new FileInputStream(args[0]));
+    analisador.Lugosi();
+  }
+
+}
+
+PARSER_END(Lugosi)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <ACHAVES: "{">
+| <FCHAVES: "}">
+| <PTVRG: ";">
+| <VAR: "var">
+| <ATRIB: ":=">
+| <APAR: "(">
+| <FPAR: ")">
+| <RETURN: "return">
+| <DO: "do">
+| <IF: "if">
+| <WHILE: "while">
+| <PRINT: "print">
+| <VIRGULA: ",">
+| <FUNCTION: "function">
+| <INT: "int">
+| <BOOL: "bool">
+| <MAIS: "+">
+| <SUB: "-">
+| <MULT: "*">
+| <DIV: "/">
+| <AND: "&&">
+| <OR: "||">
+| <MENOR: "<">
+| <MAIOR: ">">
+| <IGUAL: "==">
+| <FLOAT: "float">
+| <VOID: "void">
+| <TRUE: "true">
+| <FALSE: "false">
+}
+
+TOKEN :
+{
+  <NUM : (["0"-"9"])+ (["."](["0"-"9"])+)? (["e"](["+","-"])?(["0"-"9"])+)?>
+ |< ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])*((["_"])*(["a"-"z","A"-"Z","0"-"9"])+)*>
+}
+
+void Lugosi () : {Token t;} 
+{
+
+Main() (Func())?
+<EOF> 
+
+}
+
+void Main() : {} {
+  <MAIN> <ACHAVES> Vardecl() SeqComandos() <FCHAVES>
+}
+
+void Vardecl() : {} {
+  (<VAR> Tipo() <ID> <PTVRG>)*
+}
+
+void Tipo() : {} {
+  <INT> | <BOOL> | <FLOAT> | <VOID>
+}
+
+void SeqComandos() : {} {
+  (Comando())*
+}
+
+void Comando() : {} {
+  <ID> IdL() 
+  | <IF> <APAR> Exp() <FPAR> <ACHAVES> SeqComandos() <FCHAVES> <PTVRG>
+  | <WHILE> <APAR> Exp() <FPAR> <DO> <ACHAVES> SeqComandos() <FCHAVES> <PTVRG>
+  | <DO> <ACHAVES> SeqComandos() <FCHAVES> <WHILE> <APAR> Exp() <FPAR> <PTVRG>
+  | <RETURN> Exp() <PTVRG>
+  | <PRINT> <APAR> Exp() <FPAR> <PTVRG>
+}
+
+void IdL() : {} {
+  <ATRIB> Exp() <PTVRG> | <APAR> (ListaExp())? <FPAR> <PTVRG>
+}
+
+void Exp() : {} {
+  <APAR> Exp() Op() Exp() <FPAR> | Fator()
+}
+
+void Fator() : {} {
+  <ID> (<APAR> (ListaExp())? <FPAR>)? | <NUM> | <TRUE> | <FALSE> 
+}
+
+void Op() : {} {
+  <MAIS> | <SUB> | <MULT> | <DIV> | <AND> | <OR> | <MENOR> | <MAIOR> | <IGUAL>
+}
+
+void ListaExp() : {} {
+  Exp() ListaExpL()
+}
+
+void ListaExpL() : {} {
+  (<VIRGULA> Exp() ListaExpL())?
+}
+
+void Func() : {} {
+  <FUNCTION> Tipo() <ID> <APAR> (ListaArg())? <FPAR> <ACHAVES> Vardecl() SeqComandos() <FCHAVES> FuncL()
+}
+
+void FuncL() : {} {
+  (<FUNCTION> Tipo() <ID> <APAR> (ListaArg())? <FPAR> <ACHAVES> Vardecl() SeqComandos() <FCHAVES> FuncL())?
+}
+
+void ListaArg() : {} {
+  Tipo() <ID> ListaArgL()
+}
+
+void ListaArgL() : {} {
+  (<VIRGULA> Tipo() <ID> ListaArgL())?
+}
