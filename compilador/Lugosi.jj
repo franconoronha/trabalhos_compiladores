@@ -329,7 +329,7 @@ Comando Comando() : {Token t=null; ArrayList comandos = new ArrayList(); Exp exp
 Comando IdL(String t) : {Exp e = null;} {
   <ATRIB> e=Exp() <PTVRG> {return new Atrib(t, e);} 
   | {ArrayList listaExp = new ArrayList();}
-  <APAR> (e=Exp() {listaExp.add(e);})* <FPAR> <PTVRG> {return new FuncCall(t, listaExp, e);}
+  <APAR> (e=Exp() {listaExp.add(e);})? (<VIRGULA> e=Exp() {listaExp.add(e);})* <FPAR> <PTVRG> {return new FuncCall(t, listaExp, e);}
 }
 
 Exp Exp() : {String op=null; Exp exp1=null; Exp exp2=null; Fator f1=null;} {
@@ -338,7 +338,7 @@ Exp Exp() : {String op=null; Exp exp1=null; Exp exp2=null; Fator f1=null;} {
 }
 
 Fator Fator() : {ArrayList listaExp = new ArrayList(); Token t=null; Exp e=null;} {
-  (t=<ID> (<APAR> (e=Exp() {listaExp.add(e);})* <FPAR>)? 
+  (t=<ID> (<APAR> (e=Exp() {listaExp.add(e);})? (<VIRGULA> e=Exp() {listaExp.add(e);})* <FPAR>)? 
   | t=<NUM> | t=<TRUE> | t=<FALSE>) 
   {return new Fator(t.image, listaExp);}
 }
