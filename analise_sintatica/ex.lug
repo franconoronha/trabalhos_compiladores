@@ -1,5 +1,12 @@
 main{
-    var int teste;
-    teste := 9;
-    print (teste);
+    var float teste_a;
+    teste_a := 29.93434e-12;
+    if((teste_a > 10.0)) {
+        teste_a := quadrado(teste_a);
+    };
+    print(teste_a);
+}
+
+function float quadrado(float x) {
+    return (x * x);
 }

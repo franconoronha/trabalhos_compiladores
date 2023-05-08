@@ -1,0 +1,20 @@
+main {
+    var int x;
+    x := 12;
+    teste(x);
+    if(true) {
+        return ((x / 2) - (x / 1000));
+    };
+}
+
+function void teste(int x, int y, int z) {
+    var int y;
+    while(teste2(x)) do {
+        print(x);
+        x := (x * 2);
+    };
+}
+
+function bool teste2(int x) {
+    return ((x > 1) && (x < 1000));
+}

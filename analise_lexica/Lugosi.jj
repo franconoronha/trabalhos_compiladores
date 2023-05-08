@@ -69,7 +69,7 @@ void Lugosi () : {Token t;}
 | <FCHAVES> { System.out.println("Fecha chaves: }");}
 | <PTVRG> { System.out.println("Ponto e vírgula: ;");}
 | <VAR> { System.out.println("Palavra reservada: var");}
-| <ATRIB> { System.out.println("Atribuição: :=");}
+| <ATRIB> { System.out.println("Atribuiçao: :=");}
 | <APAR> { System.out.println("Abre parênteses: (");}
 | <FPAR> { System.out.println("Fecha parênteses: )");}
 | <RETURN> { System.out.println("Palavra reservada: return");}

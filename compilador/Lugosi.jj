@@ -1,0 +1,360 @@
+PARSER_BEGIN(Lugosi)
+import java.io.*;
+import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class Lugosi {
+
+  public static void main(String args[]) throws ParseException,IOException {
+    Lugosi analisador = new Lugosi(new FileInputStream(args[0]));
+    LugosiA arvore = analisador.Lugosi();
+    String programString = arvore.toString();
+    String filename = args[0].split("\\.")[0] + ".go";
+    try {
+      FileWriter myWriter = new FileWriter(filename);
+      myWriter.write(programString);
+      myWriter.close();
+      System.out.println("Arquivo gerado: " + filename);
+    } catch(IOException e) {
+      System.out.println("Erro na geração de arquivo.");
+    }
+  }
+
+  public static String getListString(ArrayList list) {
+    String result = "";
+    for(Object o : list) {
+      result += o.toString();
+    }
+    return result;
+  }
+
+  public static String getCommaSeparatedList(ArrayList list) {
+    String result = "";
+    for(int i = 0; i < list.size(); i++) {
+      result += list.get(i).toString();
+      if(list.size() > 2 && i != list.size() - 1) result += ", ";
+    }
+    return result;
+  }
+
+  public static String prepTipo(String tipo) {
+    return tipo.equals("float") ? "float64" : tipo;
+  }
+}
+
+class LugosiA {
+  ArrayList<Funcao> funcoes;
+  Main main;
+  LugosiA(Main main, ArrayList funcoes) {
+    this.funcoes = funcoes;
+    this.main = main;
+  }
+
+  public String toString() {
+    String functionsString = Lugosi.getListString(funcoes);
+    return main.toString() + functionsString;
+  }
+}
+
+class Main {
+  ArrayList<Comando> comandos;
+  ArrayList<Vardecl> vardecls;
+  Main(ArrayList vardecls, ArrayList comandos) {
+    this.comandos = comandos;
+    this.vardecls = vardecls;
+  }
+
+  public String toString() {
+    String declString = Lugosi.getListString(vardecls);
+    String comString = Lugosi.getListString(comandos);
+    return "package main\nimport (\"fmt\")\nvar _ = fmt.Println\n\nfunc main() {\n" + declString + comString + "}\n\n";
+  }
+}
+
+class Funcao {
+  String tipo;
+  String id;
+  ArrayList<Argumento> argumentos;
+  ArrayList<Vardecl> vardecls;
+  ArrayList<Comando> comandos;
+  Funcao(String tipo, String id, ArrayList argumentos, ArrayList comandos, ArrayList vardecls) {
+    this.tipo = tipo;
+    this.id = id;
+    this.argumentos = argumentos;
+    this.vardecls = vardecls;
+    this.comandos = comandos;
+  }
+
+  public String toString() {
+    String argString = Lugosi.getCommaSeparatedList(argumentos);
+    String funcType = tipo.equals("void") ? "" : Lugosi.prepTipo(tipo);
+    String declString = Lugosi.getListString(vardecls);
+    String comString = Lugosi.getListString(comandos);
+    return "func " + id +  " (" + argString + ") " + funcType + " {\n" + declString + comString + "}\n\n";
+  }
+}
+
+class Argumento {
+  String tipo;
+  String id;
+  Argumento(String tipo, String id) {
+    this.tipo = tipo;
+    this.id = id;
+  }
+  public String toString() {
+    return id + " " + Lugosi.prepTipo(tipo);
+  }
+}
+
+class Vardecl {
+  String tipo;
+  String id;
+  Vardecl(String tipo, String id) {
+    this.tipo = tipo;
+    this.id = id;
+  }
+  public String toString() {
+    return "var " + id + " " + Lugosi.prepTipo(tipo) + "\n";
+  }
+}
+
+class Exp {
+  Exp exp1;
+  Exp exp2;
+  String op;
+  Exp(Exp exp1, String op, Exp exp2) {
+    this.exp1 = exp1;
+    this.op = op;
+    this.exp2 = exp2;
+  }
+  public String toString() {
+    return exp1.toString() + " " + op + " " + exp2.toString();
+  }
+}
+
+class Fator extends Exp {
+  String fator;
+  ArrayList<Exp> listaExp;
+  Fator(String fator, ArrayList listaExp) {
+    super(null,null,null);
+    this.listaExp = listaExp;
+    this.fator = fator;
+  }
+  public String toString() {
+    if(listaExp.isEmpty()) {
+      return fator;
+    } else {
+      String expListString = Lugosi.getCommaSeparatedList(listaExp);
+      return fator + "(" + expListString + ")";
+    }
+  }
+}
+
+class Comando {
+  Exp exp;
+  Comando(Exp exp) {
+    this.exp = exp;
+  }
+}
+
+class Atrib extends Comando {
+  String id;
+  Atrib(String id, Exp exp) {
+    super(exp);
+    this.id = id;
+  }
+  public String toString() {
+    return id + " = " + exp.toString() + "\n";
+  }
+}
+
+class FuncCall extends Comando {
+  String id;
+  ArrayList<Exp> listaExp;
+  FuncCall(String id, ArrayList listaExp, Exp exp) {
+    super(null);
+    this.id = id;
+    this.listaExp = listaExp;
+  }
+
+  public String toString() {
+    String expLString = Lugosi.getCommaSeparatedList(listaExp);
+    return id + "(" + expLString + ")\n";
+  }
+}
+class If extends Comando {
+  ArrayList<Comando> comandos;
+  If(Exp exp, ArrayList comandos) {
+    super(exp);
+    this.comandos = comandos;
+  }
+
+  public String toString() {
+    String comString = Lugosi.getListString(comandos);
+    return "if " + exp.toString() + " " + "{\n" + comString + "}\n";
+  }
+}
+
+class While extends Comando {
+  ArrayList<Comando> comandos;
+  While(Exp exp, ArrayList comandos) {
+    super(exp);
+    this.comandos = comandos;
+  }
+
+  public String toString() {
+    String comString = Lugosi.getListString(comandos);
+    return "for " + exp.toString() + "{\n" + comString + "}\n";
+  }
+}
+
+class DoWhile extends Comando {
+  ArrayList<Comando> comandos;
+  DoWhile(Exp exp, ArrayList comandos) {
+    super(exp);
+    this.comandos = comandos;
+  }
+  public String toString() {
+    String comString = Lugosi.getListString(comandos);
+    return "for {\n" + comString + "if !(" + exp.toString() + ") {break}\n}\n";
+  }
+}
+
+class Print extends Comando {
+  Print(Exp exp){
+    super(exp);
+  }
+  public String toString() {
+    return "fmt.Println(" + exp.toString() +")\n";
+  }
+}
+
+class Return extends Comando {
+  Return(Exp exp){
+    super(exp);
+  }
+  public String toString() {
+    return "return " + exp.toString() + "\n";
+  }
+}
+
+PARSER_END(Lugosi)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <ACHAVES: "{">
+| <FCHAVES: "}">
+| <PTVRG: ";">
+| <VAR: "var">
+| <ATRIB: ":=">
+| <APAR: "(">
+| <FPAR: ")">
+| <RETURN: "return">
+| <DO: "do">
+| <IF: "if">
+| <WHILE: "while">
+| <PRINT: "print">
+| <VIRGULA: ",">
+| <FUNCTION: "function">
+| <INT: "int">
+| <BOOL: "bool">
+| <MAIS: "+">
+| <SUB: "-">
+| <MULT: "*">
+| <DIV: "/">
+| <AND: "&&">
+| <OR: "||">
+| <MENOR: "<">
+| <MAIOR: ">">
+| <IGUAL: "==">
+| <FLOAT: "float">
+| <VOID: "void">
+| <TRUE: "true">
+| <FALSE: "false">
+}
+
+TOKEN :
+{
+  <NUM : (["0"-"9"])+ (["."](["0"-"9"])+)? (["e"](["+","-"])?(["0"-"9"])+)?>
+ |< ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])*((["_"])*(["a"-"z","A"-"Z","0"-"9"])+)*>
+}
+
+LugosiA Lugosi () : { ArrayList funcoes = new ArrayList(); Main main; } 
+{
+  
+  main=Main() Func(funcoes)
+  <EOF> 
+  {return new LugosiA(main, funcoes);}
+}
+
+Main Main() : {ArrayList decls = new ArrayList(); ArrayList seqC = new ArrayList();} {
+  <MAIN> <ACHAVES> Vardecl(decls) SeqComandos(seqC) <FCHAVES>
+  {return new Main(decls, seqC);}
+}
+
+void Vardecl(ArrayList decls) : {Vardecl decl=null; Token id=null; String tipo=null;} {
+  (<VAR> tipo=Tipo() id=<ID> <PTVRG> 
+  {decl = new Vardecl(tipo, id.image);
+  decls.add(decl);})*
+}
+
+String Tipo() : {Token t=null;} {
+  (t=<INT> | t=<BOOL> | t=<FLOAT> | t=<VOID>)
+  {return t.image;}
+}
+
+void SeqComandos(ArrayList comandos) : {Comando c;} {
+  (c=Comando() {comandos.add(c);})*
+}
+
+Comando Comando() : {Token t=null; ArrayList comandos = new ArrayList(); Exp exp=null; Comando c;} {
+  t=<ID> c=IdL(t.image) {return c;}
+  | <IF> <APAR> exp=Exp() <FPAR> <ACHAVES> SeqComandos(comandos) <FCHAVES> <PTVRG> {return new If(exp, comandos);}
+  | <WHILE> <APAR> exp=Exp() <FPAR> <DO> <ACHAVES> SeqComandos(comandos) <FCHAVES> <PTVRG> {return new While(exp, comandos);}
+  | <DO> <ACHAVES> SeqComandos(comandos) <FCHAVES> <WHILE> <APAR> exp=Exp() <FPAR> <PTVRG> {return new DoWhile(exp, comandos);}
+  | <RETURN> exp=Exp() <PTVRG> {return new Return(exp);}
+  | <PRINT> <APAR> exp=Exp() <FPAR> <PTVRG> {return new Print(exp);}
+}
+
+Comando IdL(String t) : {Exp e = null;} {
+  <ATRIB> e=Exp() <PTVRG> {return new Atrib(t, e);} 
+  | {ArrayList listaExp = new ArrayList();}
+  <APAR> (e=Exp() {listaExp.add(e);})* <FPAR> <PTVRG> {return new FuncCall(t, listaExp, e);}
+}
+
+Exp Exp() : {String op=null; Exp exp1=null; Exp exp2=null; Fator f1=null;} {
+  <APAR> exp1=Exp() op=Op() exp2=Exp() <FPAR> {return new Exp(exp1, op, exp2);}
+  | f1=Fator() {return f1;}
+}
+
+Fator Fator() : {ArrayList listaExp = new ArrayList(); Token t=null; Exp e=null;} {
+  (t=<ID> (<APAR> (e=Exp() {listaExp.add(e);})* <FPAR>)? 
+  | t=<NUM> | t=<TRUE> | t=<FALSE>) 
+  {return new Fator(t.image, listaExp);}
+}
+
+String Op() : {Token t=null;} {
+  (t=<MAIS> | t=<SUB> | t=<MULT> | t=<DIV> | t=<AND> | t=<OR> | t=<MENOR> | t=<MAIOR> | t=<IGUAL>)
+  {return t.image;}
+}
+
+void Func(ArrayList funcoes) : {String tipo=null; Token id=null;} {
+  ({ArrayList comandos = new ArrayList(); ArrayList argumentos = new ArrayList();ArrayList decls = new ArrayList(); }
+  <FUNCTION> tipo=Tipo() id=<ID> <APAR> (ListaArg(argumentos))? <FPAR> <ACHAVES> Vardecl(decls) SeqComandos(comandos) <FCHAVES>
+  {funcoes.add(new Funcao(tipo, id.image, argumentos, comandos, decls));})* 
+}
+
+void ListaArg(ArrayList listaArg) : {String tipo=null; Token id=null;} {
+  tipo=Tipo() id=<ID> {listaArg.add(new Argumento(tipo, id.image));} 
+  (<VIRGULA> tipo=Tipo() id=<ID> {listaArg.add(new Argumento(tipo, id.image));})*
+}
